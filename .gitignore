@@ -1,2 +1,4 @@
 __pycache__
 champions.json
+championData.sqlite
+championID.sqlite
