@@ -1,4 +1,5 @@
 __pycache__
 champions.json
-championData.sqlite
-championID.sqlite
+champion.sqlite
+API_key.py
+LOL_Cache.json
