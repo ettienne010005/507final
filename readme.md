@@ -1,5 +1,4 @@
-Final project for SI 507 final
-League of Legends Player stats and Champion stats Program
+Final project for SI 507 final - League of Legends Player stats and Champion stats Program
 
 
 Data source:
