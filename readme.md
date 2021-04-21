@@ -1,9 +1,22 @@
 Final project for SI 507 final
+League of Legends Player stats and Champion stats Program
+
 
 Data source:
 1. Riot API https://developer.riotgames.com/apis for API 
 2. OP.GG https://www.op.gg/ for crawling data
 3. champions.json from Github https://github.com/ngryman/lol-champions for champion detailed data and turned into SQL database
+
+
+API keys:
+The API keys need to get from https://developer.riotgames.com/ and It will expire in every 24 hours. In order to run this program, the user has to get a key and put it inside a file called API_key.py. 
+
+
+Packages in this program:
+1.	BeautifulSoup
+2.	Plotly
+3.	Requests
+4.	sqlite3
 
 
 Functionalities:
