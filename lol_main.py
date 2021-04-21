@@ -91,6 +91,7 @@ def request_or_crawling_with_cache(request_type,champ_name,lane,summoner_name,en
      
     summoner_info_api_url = f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}"
     summoner_mastery_api_url = f"https://na1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/{encrypted_id}"
+    rotation_api_url = "https://na1.api.riotgames.com/lol/platform/v3/champion-rotations"
 
     CACHE_DICT = open_cache()
 
@@ -114,11 +115,13 @@ def request_or_crawling_with_cache(request_type,champ_name,lane,summoner_name,en
             save_cache(CACHE_DICT)
             return counter_champs
 
-    elif request_type == "summoner_info" or request_type == "summoner_mastery":
+    elif request_type == "summoner_info" or request_type == "summoner_mastery" or request_type == "rotation":
         if request_type == "summoner_info":
             base_url = summoner_info_api_url
         elif request_type == "summoner_mastery":
             base_url = summoner_mastery_api_url
+        elif request_type == "rotation":
+            base_url = rotation_api_url
         
         if base_url in CACHE_DICT:
             print("Using Cache")
@@ -147,7 +150,10 @@ def query_sql(champ_list):
     '''
     result_2 = cursor.execute(query_2).fetchall()
 
-    return result_1[0], result_2[0]
+    if len(result_1) == 0 or len(result_2) == 0:
+        return []
+
+    return [result_1[0], result_2[0]]
 
 
 def plot_radar(champ_list, result_1, result_2):
@@ -182,6 +188,15 @@ def plot_radar(champ_list, result_1, result_2):
     fig.show()
 
 
+def plotbar(x_axis,y_axis,player_name):
+    #plot the bar chart with the given data
+
+    bar_data = go.Bar(x=x_axis, y=y_axis)
+    basic_layout = go.Layout(title=f"Chiampion of Mastery for player: {player_name}")
+    fig = go.Figure(data=bar_data, layout=basic_layout)
+
+    fig.show()
+
 
 def check_sql():
     #check whether the SQL database exists(create one if not) and return the cursor of them
@@ -199,31 +214,103 @@ def check_sql():
 if __name__ == "__main__":
     #Functionalities:
     #1. compare two champions : use Radar Charts to show each abilities
-    #2. Top 3 Mastery Champions used by a given Summoner ID. Then plot the Line chart of the winning trend of the given champion
-    #3. Most popular top five champion in a given lane: the ranking is plotted in Bar chart
+    #2. Top 3 Mastery Champions used by a given Summoner ID. Then plot the Line chart of the Mastery points for each champion
+    #3. Plot the line chart of the winning trend of a given champion and lane
+    #4. List free champions for this week
+
+    
 
     while True:
-        cmd = input("Enter the number of option you want:\n 1. compare two champions (<champ1_name> <champ2_name>)\n 2. Top 3 Mastery Champions used by a given Summoner ID(<Summoner_ID>)\n 3. Most popular top five champion in a given lane \nPlease enter number(1-3) or exit: ")
+        cmd = input("Enter the number of option you want:\n 1. compare two champions (<champ1_name> <champ2_name>)\n 2. Top 3 Mastery Champions used by a given Summoner ID(<Summoner_ID>)\n 3. The winning trend of a given champion and lane \n 4. List free champions for this week \nPlease enter number(1-3) or exit: ")
         if cmd == "exit":
             break
-        
-        if cmd.isnumeric() and int(cmd) >=1 and int(cmd) <= 3:
+        print('\n')
+        if cmd.isnumeric() and int(cmd) >=1 and int(cmd) <= 4:
             if cmd == '1':
                 champ_string = input("1. compare two champions (<champ1_name> <champ2_name>)")
+                champ_string = champ_string.lower()
                 champ_list = champ_string.split()
-                r1,r2 = query_sql(champ_list)
-                plot_radar(champ_list,r1,r2)
-                #TODO: print data in prompt here
+                r = query_sql(champ_list)
+                if len(r) == 0:
+                    print("no results for champion name, please try again")
+                else:
+                    r1 = r[0]
+                    r2 = r[1]
+                    plot_radar(champ_list,r1,r2)
+                    categories = ['Name','Hp','Mp','Move Speed',
+                    'Armor', 'Attack Range', 'Attack Damage', 'Attack Speed']
+
+                    #print data in prompt here
+                    for i in categories:
+                        print('{:<18}'.format(i), end="")
+                    print('\n')
+                    for x in range(3,11):
+                        if x == 3:
+                            print('{:<18}'.format(champ_list[0]), end="")
+                        else:
+                            print('{:<18}'.format(r1[x]), end="")
+                    print('\n')
+                    for x in range(3,11):
+                        if x == 3:
+                            print('{:<18}'.format(champ_list[1]), end="")
+                        else:
+                            print('{:<18}'.format(r2[x]), end="")
+                    print('\n')
+                
             
             elif cmd == '2':
                 summoner_name = input("2. Top 3 Mastery Champions used by a given Summoner ID(<Summoner_ID>)")
                 request_type = 'summoner_info'
-                data = request_or_crawling_with_cache(request_type,'','',summoner_name,'')
-                print(data)
+                info = request_or_crawling_with_cache(request_type,'','',summoner_name,'')
+                if 'id' not in info:
+                    if info['status']['message'] == 'Forbidden':
+                        print('Key Invalid')
+                    else:
+                        print(info['status']['message'])
 
+                else:
+                    champ_list = [] 
+                    point_list = []
+                    request_type = 'summoner_mastery'
+                    data = request_or_crawling_with_cache(request_type,'','','',info['id'])
+                    cnt = 0
+
+                    for i in data:
+                        point_list.append(i['championPoints']) 
+                        for x in createdb_champ.champ_list:
+                            if x[0] == i['championId']:
+                                champ_list.append(x[1])
+                        cnt = cnt +1
+                        if cnt == 3:
+                            break
+                    #plot bar 
+                    plotbar(champ_list,point_list,summoner_name)
+                    # print cmd prompt 
+                    print(f"{summoner_name} plays:\n{champ_list[0]} with {point_list[0]} points; \n{champ_list[1]} with {point_list[1]} points; \n{champ_list[2]} with {point_list[2]} points.")
+                print('\n')
 
             elif cmd == '3':
-                pass
+                command = input('The winning trend of a given champion and lane(<lane> <champion_name>)')
+                l = command.split()
+                #TODO:
+                ans = request_or_crawling_with_cache('winning_trend',l[1],l[0],'','')
+
+
+                print('\n')
+
+            elif cmd == '4':
+                result = request_or_crawling_with_cache('rotation','','','','') 
+                if 'freeChampionIds' not in result:
+                    print('Key Invalid')
+                else:
+                    print("Free Champions for this week are:")
+                    for i in result['freeChampionIds']:
+                        for x in createdb_champ.champ_list:
+                            if x[0] == i:
+                                print(x[1])
+
+                print('\n')
+            
 
             
         else:
