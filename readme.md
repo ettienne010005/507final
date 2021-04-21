@@ -7,7 +7,12 @@ Data source:
 
 
 Functionalities:
-1. compare two champions : use Radar Charts to show each abilities
-2. Top 3 Mastery Champions used by a given Summoner ID. Then plot the Line chart of the Mastery points of each champion
-3. Plot the line chart of the winning trend of a given champion and lane
-4. List free champions for this week 
+1.	Compare two champions’ data from the SQL database(Data retrieved from champion.json): use Radar Charts to show each abilities and also printed in command line prompt.
+The user will have to provide two champion names in this option
+2.	Top 3 Mastery Champions used by a given Summoner(Player) ID. Data is retrieved from the RIOT API. Then plot the Bar chart of the Mastery points for each of the top 3 champions and also printed in command line prompt.
+The user will have to provide one summoner name in this option
+3.	The winning trend of a given champion and lane. Data is retrieved from the OP.GG website by crawling .The winning percentage and date are plotted in Line chart and also printed in command line prompt.
+The user will have to provide one champion name and it’s lane
+4.	List free champions for this week. Data is retrieved from RIOT API. Then the Champion names will be printed in the command line prompt.
+The user do not have to provide anything in this option
+

@@ -109,11 +109,25 @@ def request_or_crawling_with_cache(request_type,champ_name,lane,summoner_name,en
             print("Fetching")
             html = requests.get(base_url).text
             soup = BeautifulSoup(html, 'html.parser')
-            #TODO: add parsing
-            counter_champs = soup.find("table", class_="champion-stats-header-matchup__table champion-stats-header-matchup__table--strong tabItem")
-            CACHE_DICT[base_url] = counter_champs
+            data = soup.find(class_="champion-box-content")
+            script = data.find("script")
+            rate_list = []
+            date_list = []
+            for i in script:
+                s = str(i)
+            l = s.split('\n')
+            l2 = l[2].split(",")
+            for i in range(8,33,5):
+                if i == 8:
+                    rate_list.append(l2[i][7:])
+                else:
+                    rate_list.append(l2[i][5:])
+            for i in range(10,35,5):
+                date_list.append(l2[i][13:-1])
+            result = [rate_list,date_list]
+            CACHE_DICT[base_url] = result
             save_cache(CACHE_DICT)
-            return counter_champs
+            return result
 
     elif request_type == "summoner_info" or request_type == "summoner_mastery" or request_type == "rotation":
         if request_type == "summoner_info":
@@ -188,6 +202,16 @@ def plot_radar(champ_list, result_1, result_2):
     fig.show()
 
 
+def plotline(champ_name,lane,data):
+    #plot the line chart with the given data
+    xvals = data[1]
+    yvals = data[0]
+    scatter_data = go.Scatter(x=xvals, y=yvals,mode='lines+markers')
+    basic_layout = go.Layout(title=f"Winning Rate for {champ_name} on {lane} lane")
+    fig = go.Figure(data=scatter_data, layout=basic_layout)
+    fig.show()
+
+
 def plotbar(x_axis,y_axis,player_name):
     #plot the bar chart with the given data
 
@@ -217,8 +241,6 @@ if __name__ == "__main__":
     #2. Top 3 Mastery Champions used by a given Summoner ID. Then plot the Line chart of the Mastery points for each champion
     #3. Plot the line chart of the winning trend of a given champion and lane
     #4. List free champions for this week
-
-    
 
     while True:
         cmd = input("Enter the number of option you want:\n 1. compare two champions (<champ1_name> <champ2_name>)\n 2. Top 3 Mastery Champions used by a given Summoner ID(<Summoner_ID>)\n 3. The winning trend of a given champion and lane \n 4. List free champions for this week \nPlease enter number(1-3) or exit: ")
@@ -292,10 +314,22 @@ if __name__ == "__main__":
             elif cmd == '3':
                 command = input('The winning trend of a given champion and lane(<lane> <champion_name>)')
                 l = command.split()
-                #TODO:
-                ans = request_or_crawling_with_cache('winning_trend',l[1],l[0],'','')
-
-
+                result = request_or_crawling_with_cache('winning_trend',l[1],l[0],'','')
+                plotline(l[1],l[0],result)
+                print(f'The Winning Rate for {l[1]} on {l[0]} lane')
+                cnt = 0
+                for i in result[1]:
+                    if cnt == 0:
+                        print('{:<13}'.format("Date :"), end="")
+                    print('{:<13}'.format(i), end="")
+                    cnt = cnt + 1
+                print('\n')
+                cnt = 0
+                for i in result[0]:
+                    if cnt == 0:
+                        print('{:<13}'.format("Winning% :"), end="")
+                    print('{:<13}'.format(i), end="")
+                    cnt = cnt + 1
                 print('\n')
 
             elif cmd == '4':
@@ -310,33 +344,5 @@ if __name__ == "__main__":
                                 print(x[1])
 
                 print('\n')
-            
-
-            
         else:
             print("Error number of option. Please enter number 1-3")
-
-                
-                
-
-
-
-
-
-
-
-    # baseurl = "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/Gainmoreran"
-
-    # params = {"api_key":"RGAPI-0f5ba7c1-33e2-4a90-ab90-c337808009c6"}
-
-    # response = requests.get(baseurl, params)
-    # print(response.json())
-
-    # site_url = "https://na.op.gg/champion/cassiopeia/statistics/mid"
-
-    # html = requests.get(site_url).text
-    # soup = BeautifulSoup(html, 'html.parser')
-    # counter_champs = soup.find("table", class_="champion-stats-header-matchup__table champion-stats-header-matchup__table--strong tabItem")
-    # print(counter_champs.prettify())
-
-    
