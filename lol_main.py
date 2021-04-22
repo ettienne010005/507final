@@ -243,7 +243,7 @@ if __name__ == "__main__":
     #4. List free champions for this week
 
     while True:
-        cmd = input("Enter the number of option you want:\n 1. compare two champions (<champ1_name> <champ2_name>)\n 2. Top 3 Mastery Champions used by a given Summoner ID(<Summoner_ID>)\n 3. The winning trend of a given champion and lane \n 4. List free champions for this week \nPlease enter number(1-3) or exit: ")
+        cmd = input("Enter the number of option you want:\n 1. compare two champions (<champ1_name> <champ2_name>)\n 2. Top 3 Mastery Champions used by a given Summoner ID(<Summoner_ID>)\n 3. The winning trend of a given champion and lane \n 4. List free champions for this week \nPlease enter number(1-4) or exit: ")
         if cmd == "exit":
             break
         print('\n')
