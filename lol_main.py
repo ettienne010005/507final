@@ -119,9 +119,9 @@ def request_or_crawling_with_cache(request_type,champ_name,lane,summoner_name,en
             l2 = l[2].split(",")
             for i in range(8,33,5):
                 if i == 8:
-                    rate_list.append(l2[i][7:])
+                    rate_list.append(float(l2[i][7:]))
                 else:
-                    rate_list.append(l2[i][5:])
+                    rate_list.append(float(l2[i][5:]))
             for i in range(10,35,5):
                 date_list.append(l2[i][13:-1])
             result = [rate_list,date_list]
@@ -204,11 +204,15 @@ def plot_radar(champ_list, result_1, result_2):
 
 def plotline(champ_name,lane,data):
     #plot the line chart with the given data
+    y = []
+    for i in data[0]:
+        y.append(float(i))
     xvals = data[1]
-    yvals = data[0]
+    yvals = y
     scatter_data = go.Scatter(x=xvals, y=yvals,mode='lines+markers')
     basic_layout = go.Layout(title=f"Winning Rate for {champ_name} on {lane} lane")
     fig = go.Figure(data=scatter_data, layout=basic_layout)
+
     fig.show()
 
 
@@ -345,4 +349,4 @@ if __name__ == "__main__":
 
                 print('\n')
         else:
-            print("Error number of option. Please enter number 1-3")
+            print("Error number of option. Please enter number 1-4")
